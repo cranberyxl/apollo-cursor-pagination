@@ -9,14 +9,13 @@ import paginate, {
   convertNodesToEdges,
   getNodesLength,
   hasLengthGreaterThan,
-  encode,
-  decode,
   formatColumnIfAvailable,
   removeNodesBeforeAndIncluding,
   removeNodesFromEnd,
   removeNodesAfterAndIncluding,
   removeNodesFromBeginning,
 } from '..';
+import { decode, encode } from '../../../builder';
 
 interface TestNode {
   id: number;

@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-empty-object-type */
 import { Knex } from 'knex';
 import apolloCursorPaginationBuilder, {
+  decode,
+  encode,
   OperatorFunctions,
   OrderArgs,
 } from '../../builder';
@@ -18,11 +20,6 @@ type KnexOperatorFunctions<
   Knex.QueryBuilder<TRecord, TResult>,
   KnexOrderByColumn<TResult>
 >;
-
-export const encode = (str: string): string =>
-  Buffer.from(str).toString('base64');
-export const decode = (str: string): string =>
-  Buffer.from(str, 'base64').toString();
 
 const operateOverScalarOrArray = <R>(
   initialValue: R,

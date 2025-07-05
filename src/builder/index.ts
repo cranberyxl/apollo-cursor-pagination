@@ -18,6 +18,11 @@ export interface GraphQLParams<PK = string> {
   orderBy?: string | string[] | PK;
 }
 
+export const encode = (str: string): string =>
+  Buffer.from(str).toString('base64');
+export const decode = (str: string): string =>
+  Buffer.from(str, 'base64').toString();
+
 export interface OperatorFunctions<N, NA, C, PK = string> {
   removeNodesBeforeAndIncluding: (
     nodeAccessor: NA,
