@@ -39,7 +39,7 @@ describe('apolloCursorPaginationBuilder', () => {
         cursor: `cursor:${node.id}`,
         node,
       })),
-    orderNodesBy: (nodes: Node[], options: OrderArgs<string>) =>
+    orderNodesBy: (nodes: Node[], options: OrderArgs<string, string>) =>
       [...nodes].sort((a, b) => {
         const aVal = a[options.orderColumn as keyof Node];
         const bVal = b[options.orderColumn as keyof Node];
@@ -57,7 +57,9 @@ describe('apolloCursorPaginationBuilder', () => {
     const params = {
       first: 2,
     };
-    const result = await paginationBuilder(mockNodes, params);
+    const result = await paginationBuilder(mockNodes, params, {
+      primaryKey: 'id',
+    });
     expect(result.edges).toHaveLength(2);
     expect(result.edges[0].node).toEqual(mockNodes[0]);
     expect(result.edges[1].node).toEqual(mockNodes[1]);
@@ -69,7 +71,9 @@ describe('apolloCursorPaginationBuilder', () => {
     const params = {
       last: 2,
     };
-    const result = await paginationBuilder(mockNodes, params);
+    const result = await paginationBuilder(mockNodes, params, {
+      primaryKey: 'id',
+    });
     expect(result.edges).toHaveLength(2);
     expect(result.edges[0].node).toEqual(mockNodes[3]);
     expect(result.edges[1].node).toEqual(mockNodes[4]);
@@ -82,7 +86,9 @@ describe('apolloCursorPaginationBuilder', () => {
       first: 2,
       after: 'cursor:2',
     };
-    const result = await paginationBuilder(mockNodes, params);
+    const result = await paginationBuilder(mockNodes, params, {
+      primaryKey: 'id',
+    });
     expect(result.edges).toHaveLength(2);
     expect(result.edges[0].node).toEqual(mockNodes[2]);
     expect(result.edges[1].node).toEqual(mockNodes[3]);
@@ -93,7 +99,9 @@ describe('apolloCursorPaginationBuilder', () => {
       last: 2,
       before: 'cursor:4',
     };
-    const result = await paginationBuilder(mockNodes, params);
+    const result = await paginationBuilder(mockNodes, params, {
+      primaryKey: 'id',
+    });
     expect(result.edges).toHaveLength(2);
     expect(result.edges[0].node).toEqual(mockNodes[1]);
     expect(result.edges[1].node).toEqual(mockNodes[2]);
@@ -103,26 +111,36 @@ describe('apolloCursorPaginationBuilder', () => {
     const params = {
       first: -1,
     };
-    await expect(paginationBuilder(mockNodes, params)).rejects.toThrow(
-      '`first` argument must not be less than 0'
-    );
+    await expect(
+      paginationBuilder(mockNodes, params, {
+        primaryKey: 'id',
+      })
+    ).rejects.toThrow('`first` argument must not be less than 0');
   });
 
   it('should throw error when last is negative', async () => {
     const params = {
       last: -1,
     };
-    await expect(paginationBuilder(mockNodes, params)).rejects.toThrow(
-      '`last` argument must not be less than 0'
-    );
+    await expect(
+      paginationBuilder(mockNodes, params, {
+        primaryKey: 'id',
+      })
+    ).rejects.toThrow('`last` argument must not be less than 0');
   });
 
   it('should handle custom ordering', async () => {
-    const result = await paginationBuilder(mockNodes, {
-      first: 3,
-      orderBy: 'id',
-      orderDirection: 'desc',
-    });
+    const result = await paginationBuilder(
+      mockNodes,
+      {
+        first: 3,
+        orderBy: 'id',
+        orderDirection: 'desc',
+      },
+      {
+        primaryKey: 'id',
+      }
+    );
     expect(result.edges).toHaveLength(3);
     expect(result.edges[0].node).toEqual(mockNodes[4]);
     expect(result.edges[1].node).toEqual(mockNodes[3]);

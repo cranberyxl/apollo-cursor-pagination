@@ -441,15 +441,20 @@ export default function paginate<
       >
     >
   >[1],
-  opts?: Parameters<
-    ReturnType<
-      typeof apolloCursorPaginationBuilder<
-        TResult,
-        Knex.QueryBuilder<TResult, TRecord>,
-        KnexOrderByColumn<TResult>
+  opts?: Omit<
+    Parameters<
+      ReturnType<
+        typeof apolloCursorPaginationBuilder<
+          TResult,
+          Knex.QueryBuilder<TResult, TRecord>,
+          KnexOrderByColumn<TResult>
+        >
       >
-    >
-  >[2]
+    >[2],
+    'primaryKey'
+  > & {
+    primaryKey?: string;
+  }
 ) {
   return apolloCursorPaginationBuilder<
     TResult,
@@ -492,5 +497,5 @@ export default function paginate<
       nodeAccessor: Knex.QueryBuilder<TResult, TRecord>,
       opts: OrderArgs<KnexOrderByColumn<TResult>, string>
     ) => Knex.QueryBuilder<TResult, TRecord>,
-  })(query, params, opts);
+  })(query, params, { primaryKey: 'id', ...opts });
 }

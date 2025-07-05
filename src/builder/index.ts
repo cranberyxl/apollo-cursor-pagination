@@ -1,62 +1,58 @@
 // based on Relay's Connection spec at
 // https://facebook.github.io/relay/graphql/connections.htm#sec-Pagination-algorithm
 
-export interface OrderArgs<C> {
+export interface OrderArgs<C, PK> {
   orderColumn: string | string[];
   ascOrDesc: 'asc' | 'desc' | ('asc' | 'desc')[];
   isAggregateFn?: (column: string) => boolean;
   formatColumnFn?: (column: string) => C;
-  primaryKey: string;
+  primaryKey: PK;
 }
 
-export interface ExternalOrderArgs<C = string> {
-  isAggregateFn?: (column: string) => boolean;
-  formatColumnFn?: (column: string) => C;
-  primaryKey?: string;
-}
-
-export interface GraphQLParams {
+export interface GraphQLParams<PK = string> {
   before?: string;
   after?: string;
   first?: number;
   last?: number;
   orderDirection?: 'asc' | 'desc' | ('asc' | 'desc')[];
-  orderBy?: string | string[];
+  orderBy?: string | string[] | PK;
 }
 
-export interface OperatorFunctions<N, NA, C> {
+export interface OperatorFunctions<N, NA, C, PK = string> {
   removeNodesBeforeAndIncluding: (
     nodeAccessor: NA,
     cursor: string,
-    opts: OrderArgs<C>
+    opts: OrderArgs<C, PK>
   ) => NA;
   removeNodesAfterAndIncluding: (
     nodeAccessor: NA,
     cursor: string,
-    opts: OrderArgs<C>
+    opts: OrderArgs<C, PK>
   ) => NA;
   removeNodesFromEnd: (
     nodeAccessor: NA,
     count: number,
-    opts: OrderArgs<C>
+    opts: OrderArgs<C, PK>
   ) => Promise<N[]>;
   removeNodesFromBeginning: (
     nodeAccessor: NA,
     count: number,
-    opts: OrderArgs<C>
+    opts: OrderArgs<C, PK>
   ) => Promise<N[]>;
   getNodesLength: (nodeAccessor: NA) => Promise<number>;
   hasLengthGreaterThan: (nodeAccessor: NA, count: number) => Promise<boolean>;
   convertNodesToEdges: (
     nodes: N[],
-    params: GraphQLParams | undefined,
-    opts: OrderArgs<C>
+    params: GraphQLParams<PK> | undefined,
+    opts: OrderArgs<C, PK>
   ) => { cursor: string; node: N }[];
-  orderNodesBy: (nodeAccessor: NA, opts: OrderArgs<C>) => NA;
+  orderNodesBy: (nodeAccessor: NA, opts: OrderArgs<C, PK>) => NA;
 }
 
-export interface BuilderOptions<C = string>
-  extends Partial<ExternalOrderArgs<C>> {
+export interface BuilderOptions<C = string, PK = string> {
+  isAggregateFn?: (column: string) => boolean;
+  formatColumnFn?: (column: string) => C;
+  primaryKey: PK;
   skipTotalCount?: boolean;
   modifyEdgeFn?: <T>(edge: { cursor: string; node: T }) => {
     cursor: string;
@@ -80,17 +76,17 @@ export interface ConnectionResult<T> {
 /**
  * Slices the nodes list according to the `before` and `after` graphql query params.
  */
-const applyCursorsToNodes = <N, NA, C>(
+const applyCursorsToNodes = <N, NA, C, PK>(
   allNodesAccessor: NA,
-  { before, after }: Pick<GraphQLParams, 'before' | 'after'>,
+  { before, after }: Pick<GraphQLParams<PK>, 'before' | 'after'>,
   {
     removeNodesBeforeAndIncluding,
     removeNodesAfterAndIncluding,
   }: Pick<
-    OperatorFunctions<N, NA, C>,
+    OperatorFunctions<N, NA, C, PK>,
     'removeNodesBeforeAndIncluding' | 'removeNodesAfterAndIncluding'
   >,
-  opts: OrderArgs<C>
+  opts: OrderArgs<C, PK>
 ): NA => {
   let nodesAccessor = allNodesAccessor;
   if (after) {
@@ -105,10 +101,10 @@ const applyCursorsToNodes = <N, NA, C>(
 /**
  * Slices a node list according to `before`, `after`, `first` and `last` graphql query params.
  */
-const nodesToReturn = async <N, NA, C = string>(
+const nodesToReturn = async <N, NA, C = string, PK = string>(
   allNodesAccessor: NA,
   operatorFunctions: Pick<
-    OperatorFunctions<N, NA, C>,
+    OperatorFunctions<N, NA, C, PK>,
     | 'removeNodesBeforeAndIncluding'
     | 'removeNodesAfterAndIncluding'
     | 'removeNodesFromEnd'
@@ -120,8 +116,8 @@ const nodesToReturn = async <N, NA, C = string>(
     after,
     first,
     last,
-  }: Pick<GraphQLParams, 'before' | 'after' | 'first' | 'last'>,
-  opts: OrderArgs<C>
+  }: Pick<GraphQLParams<PK>, 'before' | 'after' | 'first' | 'last'>,
+  opts: OrderArgs<C, PK>
 ): Promise<{ nodes: N[]; hasNextPage: boolean; hasPreviousPage: boolean }> => {
   const orderedNodesAccessor = operatorFunctions.orderNodesBy(
     allNodesAccessor,
@@ -172,7 +168,7 @@ const nodesToReturn = async <N, NA, C = string>(
  * Returns a function that must be called to generate a Relay's Connection based page.
  */
 const apolloCursorPaginationBuilder =
-  <N, NA, C>({
+  <N, NA, C, PK = string>({
     removeNodesBeforeAndIncluding,
     removeNodesAfterAndIncluding,
     getNodesLength,
@@ -180,19 +176,20 @@ const apolloCursorPaginationBuilder =
     removeNodesFromBeginning,
     convertNodesToEdges,
     orderNodesBy,
-  }: OperatorFunctions<N, NA, C>) =>
+  }: OperatorFunctions<N, NA, C, PK>) =>
   async (
     allNodesAccessor: NA,
-    args: GraphQLParams = {},
-    opts: BuilderOptions<C> = {}
+    args: GraphQLParams<PK>,
+    opts: BuilderOptions<C, PK>
   ): Promise<ConnectionResult<N>> => {
     const {
       isAggregateFn,
       formatColumnFn,
       skipTotalCount = false,
       modifyEdgeFn,
-      primaryKey = 'id',
+      primaryKey,
     } = opts;
+
     const {
       before,
       after,
@@ -202,7 +199,12 @@ const apolloCursorPaginationBuilder =
       orderBy = primaryKey,
     } = args;
 
-    const orderColumn = orderBy;
+    // Ensure we have valid orderColumn and primaryKey
+    if (!primaryKey && !orderBy) {
+      throw new Error('orderBy is required when primaryKey is not provided');
+    }
+
+    const orderColumn = orderBy as string | string[];
     const ascOrDesc = orderDirection;
 
     const { nodes, hasPreviousPage, hasNextPage } = await nodesToReturn(
