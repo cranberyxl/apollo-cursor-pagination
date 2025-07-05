@@ -16,7 +16,7 @@ import paginate, {
   removeNodesFromEnd,
   removeNodesAfterAndIncluding,
   removeNodesFromBeginning,
-} from '../custom-pagination';
+} from '..';
 
 interface TestNode {
   id: number;
