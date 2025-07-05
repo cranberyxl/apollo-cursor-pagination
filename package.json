@@ -51,6 +51,7 @@
     "@types/jest": "^29.5.12",
     "@types/node": "^16.0.0",
     "@types/rosie": "^0.0.45",
+    "dynamodb-toolbox": "^2.6.4",
     "eslint": "^9.28.0",
     "eslint-config-airbnb-base": "^13.1.0",
     "eslint-config-airbnb-extended": "^1.0.11",
@@ -72,6 +73,11 @@
     "typescript-eslint": "^8.34.0"
   },
   "peerDependencies": {
+    "dynamodb-toolbox": "^2.6.4",
     "knex": "*"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.840.0",
+    "@aws-sdk/lib-dynamodb": "^3.840.0"
   }
 }
