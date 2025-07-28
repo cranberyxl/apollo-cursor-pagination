@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import {
   type Entity,
   type FormattedItem,
@@ -6,6 +7,8 @@ import {
   Schema,
   PrimaryKey,
   EntityAccessPattern,
+  Query,
+  QueryOptions,
 } from 'dynamodb-toolbox';
 import apolloCursorPaginationBuilder, {
   encode,
@@ -21,9 +24,30 @@ export const cursorGenerator = <E extends Entity>(
 export const getDataFromCursor = (cursor: string) => JSON.parse(decode(cursor));
 
 export const convertNodesToEdges =
-  <N, ENTITY extends Entity = Entity, SCHEMA extends Schema = Schema>(
+  <
+    N,
+    ENTITY extends Entity = Entity,
+    SCHEMA extends Schema = Schema,
+    QUERY extends Query<ENTITY['table']> = Query<ENTITY['table']>,
+    DEFAULT_OPTIONS extends QueryOptions<
+      ENTITY['table'],
+      [ENTITY],
+      QUERY
+    > = QueryOptions<ENTITY['table'], [ENTITY], QUERY>,
+    CONTEXT_OPTIONS extends QueryOptions<
+      ENTITY['table'],
+      [ENTITY],
+      QUERY
+    > = QueryOptions<ENTITY['table'], [ENTITY], QUERY>,
+  >(
     queryInput: InputValue<SCHEMA>,
-    accessPattern: EntityAccessPattern<ENTITY, SCHEMA>
+    accessPattern: EntityAccessPattern<
+      ENTITY,
+      SCHEMA,
+      QUERY,
+      DEFAULT_OPTIONS,
+      CONTEXT_OPTIONS
+    >
   ) =>
   (nodes: N[]) =>
     nodes.map((node) => {
@@ -53,9 +77,26 @@ export const convertNodesToEdges =
 export default function paginate<
   ENTITY extends Entity = Entity,
   SCHEMA extends Schema = Schema,
+  QUERY extends Query<ENTITY['table']> = Query<ENTITY['table']>,
+  DEFAULT_OPTIONS extends QueryOptions<
+    ENTITY['table'],
+    [ENTITY],
+    QUERY
+  > = QueryOptions<ENTITY['table'], [ENTITY], QUERY>,
+  CONTEXT_OPTIONS extends QueryOptions<
+    ENTITY['table'],
+    [ENTITY],
+    QUERY
+  > = QueryOptions<ENTITY['table'], [ENTITY], QUERY>,
 >(
   queryInput: InputValue<SCHEMA>,
-  accessPattern: EntityAccessPattern<ENTITY, SCHEMA>,
+  accessPattern: EntityAccessPattern<
+    ENTITY,
+    SCHEMA,
+    QUERY,
+    DEFAULT_OPTIONS,
+    CONTEXT_OPTIONS
+  >,
   args?: Omit<GraphQLParams, 'orderBy'>,
   builderOptions?: BuilderOptions<undefined, FormattedItem<ENTITY>> & {
     maxPages?: number;
@@ -66,7 +107,13 @@ export default function paginate<
 
   return apolloCursorPaginationBuilder<
     FormattedItem<ENTITY>,
-    EntityAccessPattern<ENTITY, SCHEMA>,
+    EntityAccessPattern<
+      ENTITY,
+      SCHEMA,
+      QUERY,
+      DEFAULT_OPTIONS,
+      CONTEXT_OPTIONS
+    >,
     undefined
   >({
     applyAfterCursor: (nodeAccessor, afterCursor) => {

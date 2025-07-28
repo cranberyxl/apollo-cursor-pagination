@@ -3497,7 +3497,7 @@ __metadata:
     "@types/jest": "npm:^29.5.12"
     "@types/node": "npm:^16.0.0"
     "@types/rosie": "npm:^0.0.45"
-    dynamodb-toolbox: "npm:^2.6.5"
+    dynamodb-toolbox: "npm:^2.7.1"
     eslint: "npm:^9.28.0"
     eslint-config-airbnb-base: "npm:^13.1.0"
     eslint-config-airbnb-extended: "npm:^1.0.11"
@@ -3518,7 +3518,7 @@ __metadata:
     typescript: "npm:^5.8.3"
     typescript-eslint: "npm:^8.34.0"
   peerDependencies:
-    dynamodb-toolbox: ^2.6.5
+    dynamodb-toolbox: ^2.7.1
     knex: "*"
   languageName: unknown
   linkType: soft
@@ -4317,15 +4317,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dynamodb-toolbox@npm:^2.6.5":
-  version: 2.6.5
-  resolution: "dynamodb-toolbox@npm:2.6.5"
+"dynamodb-toolbox@npm:^2.7.1":
+  version: 2.7.1
+  resolution: "dynamodb-toolbox@npm:2.7.1"
   dependencies:
     hotscript: "npm:^1.0.13"
   peerDependencies:
     "@aws-sdk/client-dynamodb": ^3.0.0
     "@aws-sdk/lib-dynamodb": ^3.0.0
-  checksum: 10c0/2f3c963415dd744e7cf038e857c3affbb173ecbdfd0e625c21a1108afac39ffb4603b4a49a8746e4cfdd26c86a6f1f66b39f78bd3b89c7087b391e3e0baa4afa
+  checksum: 10c0/7d292a1a6c801c1ffbe6da89578768ca393daeff75a761fc8a6ddf1b98271a80788dcae2787052d02992f45bb3f7a5c06b60b4903d9e97268f741f95d8d00156
   languageName: node
   linkType: hard
 
