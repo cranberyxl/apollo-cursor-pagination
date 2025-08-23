@@ -56,7 +56,7 @@
     "dynamodb-toolbox": "^2.6.5",
     "eslint": "^9.28.0",
     "eslint-config-airbnb-base": "^13.1.0",
-    "eslint-config-airbnb-extended": "^1.0.11",
+    "eslint-config-airbnb-extended": "^2.0.0",
     "eslint-config-prettier": "^10.1.5",
     "eslint-import-resolver-typescript": "^4.4.3",
     "eslint-plugin-import": "^2.14.0",
